@@ -18,6 +18,7 @@ This project uses a mix of different tech including:
 1. Install the Node dependencies. Generally, that just means running `npm install` from the repository directory.
 
 # Attributions
+"Learning React" by Kirupa Chinnathambi from which notes and examples were paraphrased from.
 
 
 # React
@@ -42,7 +43,7 @@ A great way to break down your UI is to take a step back and see which parts wou
 * Before jsx, web developers used html templates for rendering javascript. This worked but suffered one major problem; the variety of things you could apply within the templating language of your chose was always limited.
 JSX on the otherhand is defined directly inside your javascript file which means you get all the functionality of javascript within your templates; you are limited only by what javascript or the framework you are using supports.
 * You can write your templates with plain old javascript but it is much faster to use the jsx syntax to define your template. It is slightly different than normal html but close enough so as not to worry.
-* Caveat: With jsx you can't output multiple adjacent elements without a wrapping element. This is a requirement of jsx. In other words, each component requires a wrapping element. This single element might compose the entire react component, but if you need to have more you'll need to wrap it in another html tag.  For example, if you wanted to have a title and descript you might write something like this:
+* Caveat: JSX must have only one root node; Without a root node, the `createElement` function wouldn't know where to apply css and other values. Having multiple root nodes would break how the `createElement` function would work. It's important to remember, unlike other templating langauges, `createElement` won't provide a default wrapper html element (like a <div> tag). -- With jsx you can't output multiple adjacent elements without a wrapping element. This is a requirement of jsx. In other words, each component requires a wrapping element. This single element might compose the entire react component, but if you need to have more you'll need to wrap it in another html tag.  For example, if you wanted to have a title and descript you might write something like this:
 ```javascript
 var destination = document.querySelector("#container");
 ReactDOM.render(
@@ -66,6 +67,51 @@ destination
 * JSX also allows us to define inline CSS as well. Defining css in your jsx will transpile down to inline styles directly within your html. This has it's uses but it is generally better to keep your css outside of your react components for reusability etc.
 
 * see pg 93 for what JSX gets turned into. Fun fact, you can write all of your render blocks in this react-style syntax (just js) but it's much mroe concise to just use JSX. We can utilize the Babel compiler to transpile JSX into Javascript.
+  - JSX is only what we return from our render function.
+  - Babel transpiles JSX into plain old javascript. eg
+
+```javascript
+// JSX
+<div style={cardStyle}>
+	<Square color={this.props.color}/>
+	<Label color={this.props.color}/>
+</div>
+
+// JSX transpiled into JS
+React.createElement(
+	"div",
+	{ style: cardStyle },
+	React.createElement(Square, { color: this.props.color }),
+	React.createElement(Label, { color: this.props.color })
+);
+```
+
+  - You can't specify inline styles CSS via `style` html attribute like you do with normal html. Remember, you are writing jsx, not HTML. Instead, provide the `style` with an object literal, eg
+
+```javascript
+	// Defining css as inline styles via an object literal.
+	// - All word combinations are converted from dash-case to lowerCamelCase.
+	// - Vendor prefixes start with an Uppercase letter.
+	// - Javascript reserved words are replaced with JSX equivlents: `class` becomes `className`
+	<Square className="blender-bender"
+		style = {
+		display: flex,
+		color: green,
+		fontFamily: "Georgia",
+		WebkitSomething: "yeah"
+		/*
+		 * Standard markup for javascript comments inside JSX :)
+		 */
+
+		{/* However, if i were a child of another html tag you would need to be placed inside curly braces like this one is */}
+	}/>
+```
+
+  - @see list of supported tabs and attributes https://facebook.github.io/react/docs/dom-elements.html
+  - Writing comments remain simiar to standard JS unless they nested inside other html tags. In that case, they must be wrapped in curly braces.
+  - React components **MUST** be defined as UpperCamelCase in order to be understood during transpilation.
+
+* JSX is +not+ HTML. It looks like and behaves (for the most part) like HTML but is only html-like.
 
 # 3. Components
 
@@ -108,3 +154,22 @@ Instead of `{this.props.a} {this.props.b} {this.props.c} {this.props.d}` we can 
 # 4. Styling in React
 
 
+# Modifying the state of your component
+
+Each component is defined with an object called `state` that maintains the current state of your component.
+React components expose 3 primary functions for modifying the state of your component:
+
+1. `getInitialState()` runs **before** the component mounts (renders). The value returned sets the initial state of the components `state` object. eg
+    ```javascript
+    getInitialState() {
+        return {
+            name: "n/a",
+            number: 0
+        }
+    }
+    ```
+    _Caveat_, `getInitialState` is not used with ESNext, instead define the state inside your class `constructor`
+1. `componentDidMount()` runs **after** the component gets mounted (rendered)
+1. `setState()` allows you to modify the value of the `state` object. `setState` takes a single argument, the updated value of the `state` object.
+
+Whenever you call `setState()` **AND** _change the value of your `state` object_, reacts `render` function will be called automatically.

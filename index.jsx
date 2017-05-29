@@ -16,31 +16,77 @@
   <script type="text/babel">
   (function(){
 
-    // @component
-    function Display(props) {
-        return (
-            <div>
-                <p>{props.color}</p>
-                <p>{props.num}</p>
-                <p>{props.size}</p>
-            </div>
-        );
+    class LightningCounter extends React.Component{
+        constructor(props) {
+            super(props);
+            this.state = {
+                strikes: 0
+            }
+        }
+        // getInitialState is not used with ESNext, instead define the state inside your class constructor
+        // getInitialState() {
+        //     return { strikes: 0 }
+        // }
+        timerTick() {
+            this.setState({ strikes: this.state.strikes + 100 })
+        }
+        componentDidMount() {
+            // esNext class based syntax does not support reacts auto-bind feature. To achieve this use either
+            // the functions `.bind()` function or use Reacts `createReactClass()` syntax.
+            // @see https://facebook.github.io/react/docs/react-without-es6.html#autobinding
+            setInterval(this.timerTick.bind(this), 1000);
+        }
+        render() {
+            const counterStyle = {
+                color: "#66FFFF",
+                fontSize: 50
+            };
+
+            return (
+                <h1 style={counterStyle}>{this.state.strikes.toLocaleString()}</h1>
+            );
+        }
     };
 
-    // @component Label has-a Display
-    // Exapmle using the more concise function syntax
-    function Label(props) {
-        return (
-            <Display {...props} />
-        );
-    }
-
-    // @component Shirt has-a Label
-    // Example using the class syntax
-    class Shirt extends React.Component {
+    class LightningCounterDisplay extends React.Component {
         render() {
+            var commonStyle = {
+                margin: 0,
+                padding: 0
+            };
+
+            var divStyle = {
+                width: 250,
+                textAlign: "center",
+                backgroundColor: "#020202",
+                padding: 40,
+                fontFamily: "sans-serif",
+                color: "#999999",
+                borderRadius: 10
+            };
+
+            var textStyles = {
+                emphasis: {
+                    fontSize: 38,
+                    ...commonStyle
+                },
+                smallEmphasis: {
+                    ...commonStyle
+                },
+                small: {
+                    fontSize: 17,
+                    opacity: 0.5,
+                    ...commonStyle
+                }
+            };
+
             return (
-            <Label {...this.props} />
+                <div style={divStyle}>
+                    <LightningCounter/>
+                    <h2 style={textStyles.smallEmphasis}>LIGHTNING STRIKES</h2>
+                    <h2 style={textStyles.emphasis}>WORLDWIDE</h2>
+                    <p style={textStyles.small}>(since you loaded this example)</p>
+                </div>
             );
         }
     };
@@ -48,7 +94,7 @@
     ReactDOM.render(
         // The JSX to render
         <section>
-            <Shirt color="steelblue" num="3.14" size="medium" />
+            <LightningCounterDisplay />
         </section>,
         // Place the rendered JSX in here
         document.querySelector("#container")
