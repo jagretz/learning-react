@@ -14,93 +14,73 @@
   <div id="container"></div>
 
   <script type="text/babel">
-  (function(){
+var destination = document.querySelector("#container");
 
-    class LightningCounter extends React.Component{
-        constructor(props) {
-            super(props);
-            this.state = {
-                strikes: 0
-            }
+class Counter extends React.Component {
+    render() {
+        return (
+            <div className="text">
+                {this.props.display}
+            </div>
+        );
+    }
+};
+
+class CounterParent extends React.Component {
+    // Within es classes, we replace getInitialState with the constructor function and
+    // pass the props arguments to the parent (super) class.
+    constructor(props) {
+        super(props);
+        this.state = {
+            count: 0
+        };
+        // If we don't execute this line of code, the value `this` inside the `increase` func would refer to
+        // the element the event was triggered on.
+        this.increase = this.increase.bind(this);
+    }
+    //
+    increase(event) {
+        let count = this.state.count;
+
+        if (event.shiftKey) {
+            count += 10;
+        } else {
+            count += 1;
         }
-        // getInitialState is not used with ESNext, instead define the state inside your class constructor
-        // getInitialState() {
-        //     return { strikes: 0 }
-        // }
-        timerTick() {
-            this.setState({ strikes: this.state.strikes + 100 })
-        }
-        componentDidMount() {
-            // esNext class based syntax does not support reacts auto-bind feature. To achieve this use either
-            // the functions `.bind()` function or use Reacts `createReactClass()` syntax.
-            // @see https://facebook.github.io/react/docs/react-without-es6.html#autobinding
-            setInterval(this.timerTick.bind(this), 1000);
-        }
-        render() {
-            const counterStyle = {
-                color: "#66FFFF",
-                fontSize: 50
-            };
 
-            return (
-                <h1 style={counterStyle}>{this.state.strikes.toLocaleString()}</h1>
-            );
-        }
-    };
+        this.setState({
+            count
+        });
+    }
+    //
+    render() {
+        return (
+            <div className="bg">
+                <Counter display={this.state.count} />
+                {/* Events won't work when applied directly to components!
+                <ComponentName className="btn" onClick={this.increase} /> */}
+                <AddButton clickHandler={ this.increase } />
+            </div>
+        );
+    }
+};
 
-    class LightningCounterDisplay extends React.Component {
-        render() {
-            var commonStyle = {
-                margin: 0,
-                padding: 0
-            };
+class AddButton extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+    render() {
+        return <button onClick={ this.props.clickHandler } className="btn">+</button>
+    }
+}
 
-            var divStyle = {
-                width: 250,
-                textAlign: "center",
-                backgroundColor: "#020202",
-                padding: 40,
-                fontFamily: "sans-serif",
-                color: "#999999",
-                borderRadius: 10
-            };
+ReactDOM.render(
+    <div>
+        <CounterParent/>
+    </div>,
+    destination
+);
 
-            var textStyles = {
-                emphasis: {
-                    fontSize: 38,
-                    ...commonStyle
-                },
-                smallEmphasis: {
-                    ...commonStyle
-                },
-                small: {
-                    fontSize: 17,
-                    opacity: 0.5,
-                    ...commonStyle
-                }
-            };
-
-            return (
-                <div style={divStyle}>
-                    <LightningCounter/>
-                    <h2 style={textStyles.smallEmphasis}>LIGHTNING STRIKES</h2>
-                    <h2 style={textStyles.emphasis}>WORLDWIDE</h2>
-                    <p style={textStyles.small}>(since you loaded this example)</p>
-                </div>
-            );
-        }
-    };
-
-    ReactDOM.render(
-        // The JSX to render
-        <section>
-            <LightningCounterDisplay />
-        </section>,
-        // Place the rendered JSX in here
-        document.querySelector("#container")
-    );
-
-  }());
   </script>
 </body>
 

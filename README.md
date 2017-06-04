@@ -47,26 +47,27 @@ JSX on the otherhand is defined directly inside your javascript file which means
 ```javascript
 var destination = document.querySelector("#container");
 ReactDOM.render(
-<h1>Header goes here</h1>
-<p>Descript goes here</p>
-destination
+    <h1>Header goes here</h1>
+    <p>Descript goes here</p>,
+    destination
 );
 ```
 Althoguh this is valid html, it isnt' valid jsx. JSX only allows you to output a single element but that single containing element can have as many children as needed. To fix the above code you could simply wrap the prior html in a div tag:
 ```javascript
 ReactDOM.render(
-<div>
-    <h1>Header goes here</h1>
-    <p>Descript goes here</p>
-</div>
-destination
+    <div>
+        <h1>Header goes here</h1>
+        <p>Descript goes here</p>
+    </div>,
+    destination
 );
-* to evaluate an expression in JSX wrap it in curly braces, `{exampleExpression}`.
 ```
+
+* to evaluate an expression in JSX wrap it in curly braces, `{exampleExpression}`.
 
 * JSX also allows us to define inline CSS as well. Defining css in your jsx will transpile down to inline styles directly within your html. This has it's uses but it is generally better to keep your css outside of your react components for reusability etc.
 
-* see pg 93 for what JSX gets turned into. Fun fact, you can write all of your render blocks in this react-style syntax (just js) but it's much mroe concise to just use JSX. We can utilize the Babel compiler to transpile JSX into Javascript.
+* (see pg 93 for examples of transpiled JSX) Fun fact, you can write all of your render blocks in this react-style syntax (just js) but it's much mroe concise to just use JSX. We can utilize the Babel compiler to transpile JSX into Javascript.
   - JSX is only what we return from our render function.
   - Babel transpiles JSX into plain old javascript. eg
 
@@ -112,6 +113,133 @@ React.createElement(
   - React components **MUST** be defined as UpperCamelCase in order to be understood during transpilation.
 
 * JSX is +not+ HTML. It looks like and behaves (for the most part) like HTML but is only html-like.
+
+### Maintaining Componeents State
+
+* You can store JSX inside a variable just like any other peice of javascript. This allows you to maintain a state outside of the render function.
+
+```javascript
+let jsx = (
+    <div>
+        <h1>Header goes here</h1>
+        <p>Descript goes here</p>
+    </div>
+);
+
+ReactDOM.render(
+    {jsx}, // Must be wrapped inside cury braces to be understood by the jsx transpiler
+    document.querySelector("#container");
+);
+```
+
+* Just like defining a variable, you can use functions too.
+
+```javascript
+function showColors() {
+    return <h1>Header goes here</h1>;
+}
+
+ReactDOM.render(
+    { showColors() }, // Must be wrapped inside cury braces to be understood by the jsx transpiler
+    document.querySelector("#container");
+);
+```
+
+* Additionally, when using arrays, the jsx transpiler is smart emough to understand you generally want to iterate through them. Using an array inside the render function will automatially iterate through each element (JSX).
+
+```javascript
+let colors = ["red", "green", "blue"];
+let colorComponents = [];
+
+colors.forEach(color => colorComponents.push(<Circle bgColor={color} />));
+
+ReactDOM.render(
+    <div>
+        { colorComponents }
+    </div>,
+    document.querySelector("#container");
+);
+```
+
+* Array element Identifiers: React is fast, very fast, and thats becuase it knows what is going in your dom. It knows by marking each element with an identifier. This happens automatically when you specify elements within JSX.
+However, when you render elements dynamically, such as with an array, react has no idea what the element is -- the identifier is not automatically set. Therefore we need to tell react exactly what that id should be inside of a `key` property.
+
+```javascript
+//...
+// Using the previous example of an array, specify a `key` property inside your dynamically loaded jsx.
+colors.forEach(color => colorComponents.push(
+    <Circle key={ color.concat(colors.indexOf(color)) }
+            bgColor={color} />
+));
+//...
+);
+```
+
+### Working with Events
+
+With React, you specify an event in JSX just like using `onClick()` event, but remember you are not directly dealing with native DOM events. Instead, you are dealing with a React-specific event type known as `SytheticEvent`. Your event handlers won't recieve native events like `MouseEvent` or `KeyboardEvent` etc. They always recieve the type `SytheticEvent` which wraps the browsers native event.
+Essentially you get the same functionality you would with the DOMs native events some give and take. Since they differ just enough it's important to refer to Reacts events API instead of the native dom api. See https://facebook.github.io/react/docs/events.html
+
+* With React, you aren't directly modifying the DOM, Therefore native javascript events won't do.
+* React wraps native DOM events with `SytheticEvent`.
+* You can't directly listen to events on components. Why?!? Well let's use an example to illustrate why this isn't possible:
+
+```javascript
+// WRONG! This will not work!
+//...
+increase() {
+    this.setState({
+        count: this.state.count + 1
+    });
+},
+render() {
+    return (
+        <div>
+            <AddOne onClick={ this.increase() } />
+        </div>
+    );
+}
+//...
+);
+```
+
+Although this looks great on the outside, if you think critically about how JSX is transpiled into javascript you'll see that it simply won't work. The reason this won't work is because _components are wrappers for DOM elements_. Once the component gets unwrapped into a DOM element, does the outer html act as the thing you are listening for the event on? Is it some other element? How do you distinguish between listening for an event and declaring a prop with a value?
+
+There is no clear answer to these questions so React built in a work around where we treat the event handler as a prop and pass it on to the component. Inside the component, we can assign the prop we just passed in. eg, a working solution:
+
+```javascript
+render() {
+    return (
+        <div>
+            <AddOne clickHandler={ this.increase} /> // the event handler (callback) is passed in.
+        </div>
+    );
+}
+```
+
+Meanwhile, inside the `AddOne` component...
+
+```javascript
+render({ increase }) { // Weird syntax? It's just destructuring the `arguments`
+    return (
+        <button onClick={ clickHandler }>+</button>
+    );
+}
+```
+
+* For events that aren't recognized by React, you have to use the traditional approach that uses `addEventListener()` and `removeEventListener()`. eg
+```javascript
+componentDidMount() {
+    window.addEventListener("eventName", this.clickHandler);
+},
+componentWillUnmount() {
+    window.removeEventListener("eventName", this.clickHandler);
+}
+```
+
+
+
+
 
 # 3. Components
 
